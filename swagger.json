@@ -7,7 +7,7 @@
   },
   "servers": [
     {
-      "url": "https://star-wars-characters-api.onrender.com"
+      "url": "http://localhost:3000"
     }
   ],
   "paths": {
