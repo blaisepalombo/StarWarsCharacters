@@ -1,155 +1,188 @@
 {
-  "swagger": "2.0",
+  "openapi": "3.0.0",
   "info": {
-    "title": "",
-    "description": "",
+    "title": "Star Wars Character Database API",
+    "description": "API documentation for managing Star Wars characters and filtering them by collection.",
     "version": "1.0.0"
   },
-  "host": "https://cse341-code-student.onrender.com//api-docs",
-  "basePath": "/",
-  "schemes": [
-    "https"
+  "servers": [
+    {
+      "url": "https://star-wars-characters-api.onrender.com"
+    }
   ],
   "paths": {
-    "/api-docs": {
+    "/": {
       "get": {
-        "description": "",
-        "parameters": [],
-        "responses": {}
-      }
-    },
-    "/contacts/": {
-      "get": {
-        "description": "",
-        "produces": [
-          "application/json"
-        ],
-        "parameters": [],
+        "summary": "API home route",
         "responses": {
           "200": {
-            "description": "OK"
+            "description": "API welcome message"
+          }
+        }
+      }
+    },
+    "/characters": {
+      "get": {
+        "summary": "Get all characters",
+        "description": "Returns a list of all Star Wars characters.",
+        "responses": {
+          "200": {
+            "description": "Successful response"
           }
         }
       },
       "post": {
-        "description": "",
-        "parameters": [
-          {
-            "name": "body",
-            "in": "body",
-            "schema": {
-              "type": "object",
-              "properties": {
-                "firstName": {
-                  "example": "any"
-                },
-                "lastName": {
-                  "example": "any"
-                },
-                "email": {
-                  "example": "any"
-                },
-                "favoriteColor": {
-                  "example": "any"
-                },
-                "birthday": {
-                  "example": "any"
-                }
+        "summary": "Create a new character",
+        "description": "Adds a new Star Wars character.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CharacterInput"
               }
             }
           }
-        ],
+        },
         "responses": {
           "201": {
-            "description": "Created"
-          },
-          "500": {
-            "description": "Internal Server Error"
+            "description": "Character created successfully"
           }
         }
       }
     },
-    "/contacts/{id}": {
+    "/characters/{id}": {
       "get": {
-        "description": "",
-        "produces": [
-          "application/json"
-        ],
+        "summary": "Get a character by ID",
+        "description": "Returns a single Star Wars character by ID.",
         "parameters": [
           {
             "name": "id",
             "in": "path",
             "required": true,
-            "type": "string"
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "OK"
-          }
-        }
-      },
-      "put": {
-        "description": "",
-        "parameters": [
-          {
-            "name": "id",
-            "in": "path",
-            "required": true,
-            "type": "string"
-          },
-          {
-            "name": "body",
-            "in": "body",
+            "description": "Character ID",
             "schema": {
-              "type": "object",
-              "properties": {
-                "firstName": {
-                  "example": "any"
-                },
-                "lastName": {
-                  "example": "any"
-                },
-                "email": {
-                  "example": "any"
-                },
-                "favoriteColor": {
-                  "example": "any"
-                },
-                "birthday": {
-                  "example": "any"
-                }
-              }
+              "type": "string"
             }
           }
         ],
         "responses": {
-          "204": {
-            "description": "No Content"
+          "200": {
+            "description": "Successful response"
           },
-          "500": {
-            "description": "Internal Server Error"
+          "404": {
+            "description": "Character not found"
           }
         }
       },
-      "delete": {
-        "description": "",
+      "put": {
+        "summary": "Update a character by ID",
+        "description": "Updates an existing Star Wars character.",
         "parameters": [
           {
             "name": "id",
             "in": "path",
             "required": true,
-            "type": "string"
+            "description": "Character ID",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CharacterInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Character updated successfully"
+          },
+          "404": {
+            "description": "Character not found"
+          }
+        }
+      },
+      "delete": {
+        "summary": "Delete a character by ID",
+        "description": "Deletes a Star Wars character.",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "description": "Character ID",
+            "schema": {
+              "type": "string"
+            }
           }
         ],
         "responses": {
-          "204": {
-            "description": "No Content"
+          "200": {
+            "description": "Character deleted successfully"
           },
-          "500": {
-            "description": "Internal Server Error"
+          "404": {
+            "description": "Character not found"
           }
         }
+      }
+    },
+    "/characters/collection/{collection}": {
+      "get": {
+        "summary": "Get characters by collection",
+        "description": "Returns characters filtered by collection such as Jedi, Sith, Droids, or Bounty Hunters.",
+        "parameters": [
+          {
+            "name": "collection",
+            "in": "path",
+            "required": true,
+            "description": "Collection name",
+            "schema": {
+              "type": "string",
+              "example": "Jedi"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response"
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "CharacterInput": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "example": "Luke Skywalker"
+          },
+          "species": {
+            "type": "string",
+            "example": "Human"
+          },
+          "homeworld": {
+            "type": "string",
+            "example": "Tatooine"
+          },
+          "affiliation": {
+            "type": "string",
+            "example": "Jedi Order"
+          },
+          "collection": {
+            "type": "string",
+            "example": "Jedi"
+          }
+        },
+        "required": ["name", "species", "affiliation", "collection"]
       }
     }
   }
