@@ -62,7 +62,8 @@
             "required": true,
             "description": "Character ID",
             "schema": {
-              "type": "string"
+              "type": "string",
+              "example": "67d35f2a8d1b3c0012345678"
             }
           }
         ],
