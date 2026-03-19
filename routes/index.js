@@ -5,5 +5,8 @@ router.get('/', (req, res) => {
 });
 
 router.use('/characters', require('./characters'));
+router.use('/planets', require('./planets'));
+router.use('/starships', require('./starships'));
+router.use('/factions', require('./factions'));
 
 module.exports = router;

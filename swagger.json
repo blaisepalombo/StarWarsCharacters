@@ -2,7 +2,7 @@
   "openapi": "3.0.0",
   "info": {
     "title": "Star Wars Character Database API",
-    "description": "API documentation for managing Star Wars characters and filtering them by collection.",
+    "description": "API documentation for managing Star Wars characters, planets, starships, and factions.",
     "version": "1.0.0"
   },
   "servers": [
@@ -86,7 +86,8 @@
             "required": true,
             "description": "Character ID",
             "schema": {
-              "type": "string"
+              "type": "string",
+              "example": "67d35f2a8d1b3c0012345678"
             }
           }
         ],
@@ -119,7 +120,8 @@
             "required": true,
             "description": "Character ID",
             "schema": {
-              "type": "string"
+              "type": "string",
+              "example": "67d35f2a8d1b3c0012345678"
             }
           }
         ],
@@ -155,6 +157,348 @@
           }
         }
       }
+    },
+    "/planets": {
+      "get": {
+        "summary": "Get all planets",
+        "description": "Returns a list of all Star Wars planets.",
+        "responses": {
+          "200": {
+            "description": "Successful response"
+          }
+        }
+      },
+      "post": {
+        "summary": "Create a new planet",
+        "description": "Adds a new Star Wars planet.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PlanetInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Planet created successfully"
+          }
+        }
+      }
+    },
+    "/planets/{id}": {
+      "get": {
+        "summary": "Get a planet by ID",
+        "description": "Returns a single Star Wars planet by ID.",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "description": "Planet ID",
+            "schema": {
+              "type": "string",
+              "example": "67d35f2a8d1b3c0012345678"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response"
+          },
+          "404": {
+            "description": "Planet not found"
+          }
+        }
+      },
+      "put": {
+        "summary": "Update a planet by ID",
+        "description": "Updates an existing Star Wars planet.",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "description": "Planet ID",
+            "schema": {
+              "type": "string",
+              "example": "67d35f2a8d1b3c0012345678"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PlanetInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Planet updated successfully"
+          },
+          "404": {
+            "description": "Planet not found"
+          }
+        }
+      },
+      "delete": {
+        "summary": "Delete a planet by ID",
+        "description": "Deletes a Star Wars planet.",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "description": "Planet ID",
+            "schema": {
+              "type": "string",
+              "example": "67d35f2a8d1b3c0012345678"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Planet deleted successfully"
+          },
+          "404": {
+            "description": "Planet not found"
+          }
+        }
+      }
+    },
+    "/starships": {
+      "get": {
+        "summary": "Get all starships",
+        "description": "Returns a list of all Star Wars starships.",
+        "responses": {
+          "200": {
+            "description": "Successful response"
+          }
+        }
+      },
+      "post": {
+        "summary": "Create a new starship",
+        "description": "Adds a new Star Wars starship.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/StarshipInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Starship created successfully"
+          }
+        }
+      }
+    },
+    "/starships/{id}": {
+      "get": {
+        "summary": "Get a starship by ID",
+        "description": "Returns a single Star Wars starship by ID.",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "description": "Starship ID",
+            "schema": {
+              "type": "string",
+              "example": "67d35f2a8d1b3c0012345678"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response"
+          },
+          "404": {
+            "description": "Starship not found"
+          }
+        }
+      },
+      "put": {
+        "summary": "Update a starship by ID",
+        "description": "Updates an existing Star Wars starship.",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "description": "Starship ID",
+            "schema": {
+              "type": "string",
+              "example": "67d35f2a8d1b3c0012345678"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/StarshipInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Starship updated successfully"
+          },
+          "404": {
+            "description": "Starship not found"
+          }
+        }
+      },
+      "delete": {
+        "summary": "Delete a starship by ID",
+        "description": "Deletes a Star Wars starship.",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "description": "Starship ID",
+            "schema": {
+              "type": "string",
+              "example": "67d35f2a8d1b3c0012345678"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Starship deleted successfully"
+          },
+          "404": {
+            "description": "Starship not found"
+          }
+        }
+      }
+    },
+    "/factions": {
+      "get": {
+        "summary": "Get all factions",
+        "description": "Returns a list of all Star Wars factions.",
+        "responses": {
+          "200": {
+            "description": "Successful response"
+          }
+        }
+      },
+      "post": {
+        "summary": "Create a new faction",
+        "description": "Adds a new Star Wars faction.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/FactionInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Faction created successfully"
+          }
+        }
+      }
+    },
+    "/factions/{id}": {
+      "get": {
+        "summary": "Get a faction by ID",
+        "description": "Returns a single Star Wars faction by ID.",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "description": "Faction ID",
+            "schema": {
+              "type": "string",
+              "example": "67d35f2a8d1b3c0012345678"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response"
+          },
+          "404": {
+            "description": "Faction not found"
+          }
+        }
+      },
+      "put": {
+        "summary": "Update a faction by ID",
+        "description": "Updates an existing Star Wars faction.",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "description": "Faction ID",
+            "schema": {
+              "type": "string",
+              "example": "67d35f2a8d1b3c0012345678"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/FactionInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Faction updated successfully"
+          },
+          "404": {
+            "description": "Faction not found"
+          }
+        }
+      },
+      "delete": {
+        "summary": "Delete a faction by ID",
+        "description": "Deletes a Star Wars faction.",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "description": "Faction ID",
+            "schema": {
+              "type": "string",
+              "example": "67d35f2a8d1b3c0012345678"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Faction deleted successfully"
+          },
+          "404": {
+            "description": "Faction not found"
+          }
+        }
+      }
     }
   },
   "components": {
@@ -184,6 +528,72 @@
           }
         },
         "required": ["name", "species", "affiliation", "collection"]
+      },
+      "PlanetInput": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "example": "Tatooine"
+          },
+          "climate": {
+            "type": "string",
+            "example": "Arid"
+          },
+          "terrain": {
+            "type": "string",
+            "example": "Desert"
+          },
+          "population": {
+            "type": "string",
+            "example": "200000"
+          }
+        },
+        "required": ["name", "climate", "terrain", "population"]
+      },
+      "StarshipInput": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "example": "Millennium Falcon"
+          },
+          "model": {
+            "type": "string",
+            "example": "YT-1300 light freighter"
+          },
+          "manufacturer": {
+            "type": "string",
+            "example": "Corellian Engineering Corporation"
+          },
+          "crew": {
+            "type": "string",
+            "example": "4"
+          }
+        },
+        "required": ["name", "model", "manufacturer", "crew"]
+      },
+      "FactionInput": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "example": "Rebel Alliance"
+          },
+          "leader": {
+            "type": "string",
+            "example": "Mon Mothma"
+          },
+          "alignment": {
+            "type": "string",
+            "example": "Light Side"
+          },
+          "headquarters": {
+            "type": "string",
+            "example": "Yavin 4"
+          }
+        },
+        "required": ["name", "leader", "alignment", "headquarters"]
       }
     }
   }
