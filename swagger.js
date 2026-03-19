@@ -1,7 +1,14 @@
-const router = require('express').Router();
-const swaggerUi = require('swagger-ui-express');
-const swaggerDocument = require('../swagger.json');
-router.use('/api-docs', swaggerUi.serve);
-router.get('/api-docs', swaggerUi.setup(swaggerDocument));
+const swaggerAutogen = require('swagger-autogen')();
 
-module.exports = router;
+const doc = {
+  info: {
+    title: 'Star Wars Characters API',
+    description: 'API for managing Star Wars characters organized by faction'
+  },
+  host: 'localhost:3000'
+};
+
+const outputFile = './swagger.json';
+const routes = ['./routes/index.js'];
+
+swaggerAutogen(outputFile, routes, doc);
