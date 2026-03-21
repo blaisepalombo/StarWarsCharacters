@@ -18,15 +18,23 @@ app.use((req, res, next) => {
 app.use('/', require('./routes'));
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument));
 
-app.listen(port, () => {
-  console.log(`Server running on port ${port}`);
-});
+const baseUrl = process.env.RENDER_EXTERNAL_URL || `http://localhost:${port}`;
 
-/* Try connecting to Mongo but don't block the server */
-mongodb.initDb((err) => {
-  if (err) {
-    console.log('MongoDB not connected yet (this is OK for now)');
-  } else {
-    console.log('Connected to MongoDB');
-  }
-});
+if (process.env.NODE_ENV !== 'test') {
+  app.listen(port, () => {
+    console.log('Server running');
+    console.log(`Base URL: ${baseUrl}`);
+    console.log(`Swagger Docs: ${baseUrl}/api-docs`);
+  });
+
+  mongodb.initDb((err) => {
+    if (err) {
+      console.log('MongoDB not connected yet');
+      console.error(err);
+    } else {
+      console.log('Connected to MongoDB');
+    }
+  });
+}
+
+module.exports = app;

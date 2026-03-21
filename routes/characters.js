@@ -2,13 +2,31 @@ const router = require('express').Router();
 const mongodb = require('../db/connect');
 const { ObjectId } = require('mongodb');
 
-const getCharactersCollection = () => {
-  return mongodb.getDb().db('star_wars_characters').collection('characters');
+const getCollection = () => {
+  return mongodb.getDb().db(process.env.DB_NAME).collection('characters');
+};
+
+const buildCharacter = (body) => ({
+  name: body.name,
+  species: body.species,
+  homeworld: body.homeworld || '',
+  affiliation: body.affiliation,
+  collection: body.collection,
+  weapon: body.weapon || '',
+  forceUser: body.forceUser ?? false,
+  firstAppearance: body.firstAppearance || ''
+});
+
+const validateCharacter = (character) => {
+  if (!character.name || !character.species || !character.affiliation || !character.collection) {
+    return 'name, species, affiliation, and collection are required';
+  }
+  return null;
 };
 
 router.get('/', async (req, res) => {
   try {
-    const result = await getCharactersCollection().find().toArray();
+    const result = await getCollection().find().toArray();
     res.status(200).json(result);
   } catch (error) {
     console.error('GET /characters error:', error);
@@ -18,9 +36,8 @@ router.get('/', async (req, res) => {
 
 router.get('/collection/:collection', async (req, res) => {
   try {
-    const collectionName = req.params.collection;
-    const result = await getCharactersCollection()
-      .find({ collection: { $regex: `^${collectionName}$`, $options: 'i' } })
+    const result = await getCollection()
+      .find({ collection: { $regex: `^${req.params.collection}$`, $options: 'i' } })
       .toArray();
 
     res.status(200).json(result);
@@ -32,13 +49,11 @@ router.get('/collection/:collection', async (req, res) => {
 
 router.get('/:id', async (req, res) => {
   try {
-    const id = req.params.id;
-
-    if (!ObjectId.isValid(id)) {
+    if (!ObjectId.isValid(req.params.id)) {
       return res.status(400).json({ message: 'Invalid character ID' });
     }
 
-    const result = await getCharactersCollection().findOne({ _id: new ObjectId(id) });
+    const result = await getCollection().findOne({ _id: new ObjectId(req.params.id) });
 
     if (!result) {
       return res.status(404).json({ message: 'Character not found' });
@@ -53,70 +68,14 @@ router.get('/:id', async (req, res) => {
 
 router.post('/', async (req, res) => {
   try {
-    const character = {
-      name: req.body.name,
-      species: req.body.species,
-      homeworld: req.body.homeworld || '',
-      affiliation: req.body.affiliation,
-      collection: req.body.collection,
-      weapon: req.body.weapon || null,
-      subType: req.body.subType || null,
-      birth: req.body.birth || null,
-      death: req.body.death || null
-    };
+    const character = buildCharacter(req.body);
+    const validationError = validateCharacter(character);
 
-    let extraFields = {};
-
-    switch (req.body.collection) {
-      case 'Force User':
-        extraFields = {
-          subType: req.body.subType,  // Jedi or Sith
-          lightsaberColor: req.body.lightsaberColor,
-          rank: req.body.rank,
-          forceAbilities: req.body.forceAbilities || []
-        };
-        break;
-
-      case 'Clone Trooper':
-        extraFields = {
-          designation: req.body.designation,
-          unit: req.body.unit,
-          armorType: req.body.armorType
-        };
-        break;
-      
-      case 'Droid':
-        extraFields = {
-          model: req.body.model,
-          manufacturer: req.body.manufacturer,
-          function: req.body.function
-        };
-        break;
-      
-      case 'Bounty Hunter':
-        extraFields = {
-          ship: req.body.ship,
-          guildAffiliation: req.body.guildAffiliation
-        };
-        break;
-      
-      default:
-        return res.status(400).json({ message: 'Invalid collection type' });
+    if (validationError) {
+      return res.status(400).json({ message: validationError });
     }
 
-    if (!character.name || !character.species || !character.affiliation || !character.collection) {
-      return res.status(400).json({
-        message: 'name, species, affiliation, and collection are required'
-      });
-    }
-
-    console.log('POST body received:', character);
-
-    const finalCharacter = { ...character, ...extraFields };
-
-    const result = await getCharactersCollection().insertOne(finalCharacter);
-
-    console.log('Insert result:', result);
+    const result = await getCollection().insertOne(character);
 
     res.status(201).json({
       message: 'Character created successfully',
@@ -131,28 +90,19 @@ router.post('/', async (req, res) => {
 
 router.put('/:id', async (req, res) => {
   try {
-    const id = req.params.id;
-
-    if (!ObjectId.isValid(id)) {
+    if (!ObjectId.isValid(req.params.id)) {
       return res.status(400).json({ message: 'Invalid character ID' });
     }
 
-    const updatedCharacter = {
-      name: req.body.name,
-      species: req.body.species,
-      homeworld: req.body.homeworld || '',
-      affiliation: req.body.affiliation,
-      collection: req.body.collection
-    };
+    const updatedCharacter = buildCharacter(req.body);
+    const validationError = validateCharacter(updatedCharacter);
 
-    if (!updatedCharacter.name || !updatedCharacter.species || !updatedCharacter.affiliation || !updatedCharacter.collection) {
-      return res.status(400).json({
-        message: 'name, species, affiliation, and collection are required'
-      });
+    if (validationError) {
+      return res.status(400).json({ message: validationError });
     }
 
-    const result = await getCharactersCollection().replaceOne(
-      { _id: new ObjectId(id) },
+    const result = await getCollection().replaceOne(
+      { _id: new ObjectId(req.params.id) },
       updatedCharacter
     );
 
@@ -162,7 +112,7 @@ router.put('/:id', async (req, res) => {
 
     res.status(200).json({
       message: 'Character updated successfully',
-      id
+      id: req.params.id
     });
   } catch (error) {
     console.error('PUT /characters/:id error:', error);
@@ -172,13 +122,11 @@ router.put('/:id', async (req, res) => {
 
 router.delete('/:id', async (req, res) => {
   try {
-    const id = req.params.id;
-
-    if (!ObjectId.isValid(id)) {
+    if (!ObjectId.isValid(req.params.id)) {
       return res.status(400).json({ message: 'Invalid character ID' });
     }
 
-    const result = await getCharactersCollection().deleteOne({ _id: new ObjectId(id) });
+    const result = await getCollection().deleteOne({ _id: new ObjectId(req.params.id) });
 
     if (result.deletedCount === 0) {
       return res.status(404).json({ message: 'Character not found' });
