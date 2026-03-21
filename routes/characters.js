@@ -80,7 +80,7 @@ router.post('/', async (req, res) => {
     res.status(201).json({
       message: 'Character created successfully',
       id: result.insertedId,
-      character
+      character: finalCharacter
     });
   } catch (error) {
     console.error('POST /characters error:', error);
