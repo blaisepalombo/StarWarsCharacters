@@ -58,8 +58,51 @@ router.post('/', async (req, res) => {
       species: req.body.species,
       homeworld: req.body.homeworld || '',
       affiliation: req.body.affiliation,
-      collection: req.body.collection
+      collection: req.body.collection,
+      weapon: req.body.weapon || null,
+      subType: req.body.subType || null,
+      birth: req.body.birth || null,
+      death: req.body.death || null
     };
+
+    let extraFields = {};
+
+    switch (req.body.collection) {
+      case 'Force User':
+        extraFields = {
+          subType: req.body.subType,  // Jedi or Sith
+          lightsaberColor: req.body.lightsaberColor,
+          rank: req.body.rank,
+          forceAbilities: req.body.forceAbilities || []
+        };
+        break;
+
+      case 'Clone Trooper':
+        extraFields = {
+          designation: req.body.designation,
+          unit: req.body.unit,
+          armorType: req.body.armorType
+        };
+        break;
+      
+      case 'Droid':
+        extraFields = {
+          model: req.body.model,
+          manufacturer: req.body.manufacturer,
+          function: req.body.function
+        };
+        break;
+      
+      case 'Bounty Hunter':
+        extraFields = {
+          ship: req.body.ship,
+          guildAffiliation: req.body.guildAffiliation
+        };
+        break;
+      
+      default:
+        return res.status(400).json({ message: 'Invalid collection type' });
+    }
 
     if (!character.name || !character.species || !character.affiliation || !character.collection) {
       return res.status(400).json({
@@ -69,14 +112,16 @@ router.post('/', async (req, res) => {
 
     console.log('POST body received:', character);
 
-    const result = await getCharactersCollection().insertOne(character);
+    const finalCharacter = { ...character, ...extraFields };
+
+    const result = await getCharactersCollection().insertOne(finalCharacter);
 
     console.log('Insert result:', result);
 
     res.status(201).json({
       message: 'Character created successfully',
       id: result.insertedId,
-      character
+      character: finalCharacter
     });
   } catch (error) {
     console.error('POST /characters error:', error);
