@@ -6,16 +6,64 @@ const getCollection = () => {
   return mongodb.getDb().db(process.env.DB_NAME).collection('characters');
 };
 
-const buildCharacter = (body) => ({
-  name: body.name,
-  species: body.species,
-  homeworld: body.homeworld || '',
-  affiliation: body.affiliation,
-  collection: body.collection,
-  weapon: body.weapon || '',
-  forceUser: body.forceUser ?? false,
-  firstAppearance: body.firstAppearance || ''
-});
+const buildCharacter = (body) => {
+  const baseCharacter = {
+    name: body.name,
+    species: body.species,
+    homeworld: body.homeworld || '',
+    affiliation: body.affiliation,
+    collection: body.collection,
+    weapon: body.weapon || '',
+    forceUser: body.forceUser ?? false,
+    firstAppearance: body.firstAppearance || ''
+  };
+  
+  let details = {};
+  const type = (body.collection || '').toLowerCase();
+  
+  // Force Users (Jedi/Sith)
+  if (type === 'jedi' || type === 'sith') {
+    details = {
+      lightsabers: body.lightsabers || [],
+      rank: body.rank || '',
+      masters: body.masters || [],
+      padawans: body.padawans || []
+    };
+  }
+
+// Droids
+else if (type === 'droid') {
+  details = {
+    model: body.model || '',
+    manufacturer: body.manufacturer || '',
+    primaryFunction: body.primaryFunction || ''
+  };
+}
+
+// Clone Troopers
+else if (type == 'clone') {
+  details = {
+    legions: body.legions || [],
+    rank: body.rank || '',
+    weapons: body.weapons || []
+  };
+}
+
+// Mandalorians / Bounty Hunters
+else if (type === 'mandalorian' || type === 'bounty hunter') {
+  details = {
+    clan: body.clan || '',
+    armor: body.armor || '',
+    ship: body.ship || '',
+    bountyCount: body.bountyCount || 0
+    };
+  }
+  return {
+    ...baseCharacter,
+    details
+  };
+};
+
 
 const validateCharacter = (character) => {
   if (!character.name || !character.species || !character.affiliation || !character.collection) {
@@ -80,7 +128,7 @@ router.post('/', async (req, res) => {
     res.status(201).json({
       message: 'Character created successfully',
       id: result.insertedId,
-      character: finalCharacter
+      character: character
     });
   } catch (error) {
     console.error('POST /characters error:', error);
@@ -127,7 +175,6 @@ router.delete('/:id', async (req, res) => {
     }
 
     const result = await getCollection().deleteOne({ _id: new ObjectId(req.params.id) });
-
     if (result.deletedCount === 0) {
       return res.status(404).json({ message: 'Character not found' });
     }
