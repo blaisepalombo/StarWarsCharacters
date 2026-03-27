@@ -1,86 +1,98 @@
-const router = require('express').Router();
+const express = require('express');
+const router = express.Router();
 const mongodb = require('../db/connect');
 const { ObjectId } = require('mongodb');
 
-const getCollection = () => {
-  return mongodb.getDb().db(process.env.DB_NAME).collection('characters');
-};
-
-const buildCharacter = (body) => ({
-  name: body.name,
-  species: body.species,
-  homeworld: body.homeworld || '',
-  affiliation: body.affiliation,
-  collection: body.collection,
-  weapon: body.weapon || '',
-  forceUser: body.forceUser ?? false,
-  firstAppearance: body.firstAppearance || ''
-});
-
-const validateCharacter = (character) => {
-  if (!character.name || !character.species || !character.affiliation || !character.collection) {
-    return 'name, species, affiliation, and collection are required';
-  }
-  return null;
-};
-
 router.get('/', async (req, res) => {
   try {
-    const result = await getCollection().find().toArray();
-    res.status(200).json(result);
+    const result = await mongodb
+      .getDb()
+      .db(process.env.DB_NAME)
+      .collection('characters')
+      .find();
+
+    const characters = await result.toArray();
+    res.status(200).json(characters);
   } catch (error) {
     console.error('GET /characters error:', error);
-    res.status(500).json({ message: 'Failed to get characters', error: error.message });
+    res.status(500).json({ message: 'Failed to fetch characters', error: error.message });
   }
 });
 
 router.get('/collection/:collection', async (req, res) => {
   try {
-    const result = await getCollection()
-      .find({ collection: { $regex: `^${req.params.collection}$`, $options: 'i' } })
-      .toArray();
+    const collectionName = req.params.collection;
 
-    res.status(200).json(result);
+    const result = await mongodb
+      .getDb()
+      .db(process.env.DB_NAME)
+      .collection('characters')
+      .find({ collection: collectionName });
+
+    const characters = await result.toArray();
+    res.status(200).json(characters);
   } catch (error) {
     console.error('GET /characters/collection/:collection error:', error);
-    res.status(500).json({ message: 'Failed to get characters by collection', error: error.message });
+    res.status(500).json({ message: 'Failed to fetch characters by collection', error: error.message });
   }
 });
 
 router.get('/:id', async (req, res) => {
   try {
-    if (!ObjectId.isValid(req.params.id)) {
+    const characterId = req.params.id;
+
+    if (!ObjectId.isValid(characterId)) {
       return res.status(400).json({ message: 'Invalid character ID' });
     }
 
-    const result = await getCollection().findOne({ _id: new ObjectId(req.params.id) });
+    const character = await mongodb
+      .getDb()
+      .db(process.env.DB_NAME)
+      .collection('characters')
+      .findOne({ _id: new ObjectId(characterId) });
 
-    if (!result) {
+    if (!character) {
       return res.status(404).json({ message: 'Character not found' });
     }
 
-    res.status(200).json(result);
+    res.status(200).json(character);
   } catch (error) {
     console.error('GET /characters/:id error:', error);
-    res.status(500).json({ message: 'Failed to get character', error: error.message });
+    res.status(500).json({ message: 'Failed to fetch character', error: error.message });
   }
 });
 
 router.post('/', async (req, res) => {
   try {
-    const character = buildCharacter(req.body);
-    const validationError = validateCharacter(character);
+    const { name, species, homeworld, affiliation, collection, weapon, forceUser, firstAppearance } = req.body;
 
-    if (validationError) {
-      return res.status(400).json({ message: validationError });
+    if (!name || !species || !affiliation || !collection) {
+      return res.status(400).json({
+        message: 'name, species, affiliation, and collection are required'
+      });
     }
 
-    const result = await getCollection().insertOne(character);
+    const character = {
+      name,
+      species,
+      homeworld,
+      affiliation,
+      collection,
+      weapon,
+      forceUser,
+      firstAppearance
+    };
+
+    const result = await mongodb
+      .getDb()
+      .db(process.env.DB_NAME)
+      .collection('characters')
+      .insertOne(character);
 
     res.status(201).json({
       message: 'Character created successfully',
       id: result.insertedId,
-      character: finalCharacter
+      character
     });
   } catch (error) {
     console.error('POST /characters error:', error);
@@ -90,30 +102,45 @@ router.post('/', async (req, res) => {
 
 router.put('/:id', async (req, res) => {
   try {
-    if (!ObjectId.isValid(req.params.id)) {
+    const characterId = req.params.id;
+
+    if (!ObjectId.isValid(characterId)) {
       return res.status(400).json({ message: 'Invalid character ID' });
     }
 
-    const updatedCharacter = buildCharacter(req.body);
-    const validationError = validateCharacter(updatedCharacter);
+    const { name, species, homeworld, affiliation, collection, weapon, forceUser, firstAppearance } = req.body;
 
-    if (validationError) {
-      return res.status(400).json({ message: validationError });
+    if (!name || !species || !affiliation || !collection) {
+      return res.status(400).json({
+        message: 'name, species, affiliation, and collection are required'
+      });
     }
 
-    const result = await getCollection().replaceOne(
-      { _id: new ObjectId(req.params.id) },
-      updatedCharacter
-    );
+    const updatedCharacter = {
+      name,
+      species,
+      homeworld,
+      affiliation,
+      collection,
+      weapon,
+      forceUser,
+      firstAppearance
+    };
+
+    const result = await mongodb
+      .getDb()
+      .db(process.env.DB_NAME)
+      .collection('characters')
+      .updateOne(
+        { _id: new ObjectId(characterId) },
+        { $set: updatedCharacter }
+      );
 
     if (result.matchedCount === 0) {
       return res.status(404).json({ message: 'Character not found' });
     }
 
-    res.status(200).json({
-      message: 'Character updated successfully',
-      id: req.params.id
-    });
+    res.status(200).json({ message: 'Character updated successfully' });
   } catch (error) {
     console.error('PUT /characters/:id error:', error);
     res.status(500).json({ message: 'Failed to update character', error: error.message });
@@ -122,11 +149,17 @@ router.put('/:id', async (req, res) => {
 
 router.delete('/:id', async (req, res) => {
   try {
-    if (!ObjectId.isValid(req.params.id)) {
+    const characterId = req.params.id;
+
+    if (!ObjectId.isValid(characterId)) {
       return res.status(400).json({ message: 'Invalid character ID' });
     }
 
-    const result = await getCollection().deleteOne({ _id: new ObjectId(req.params.id) });
+    const result = await mongodb
+      .getDb()
+      .db(process.env.DB_NAME)
+      .collection('characters')
+      .deleteOne({ _id: new ObjectId(characterId) });
 
     if (result.deletedCount === 0) {
       return res.status(404).json({ message: 'Character not found' });

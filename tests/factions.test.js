@@ -26,10 +26,20 @@ afterAll(async () => {
 });
 
 describe('Factions API', () => {
-  it('GET /factions should return 200', async () => {
+  it('GET /factions should return 200 and an array', async () => {
     const res = await request(app).get('/factions');
+
     expect(res.statusCode).toBe(200);
     expect(Array.isArray(res.body)).toBe(true);
+  });
+
+  it('POST /factions should return 400 when required fields are missing', async () => {
+    const res = await request(app).post('/factions').send({
+      name: 'Incomplete Faction'
+    });
+
+    expect(res.statusCode).toBe(400);
+    expect(res.body.message).toBe('name, leader, alignment, and headquarters are required');
   });
 
   it('POST /factions should create a faction', async () => {
@@ -45,19 +55,40 @@ describe('Factions API', () => {
     expect(res.statusCode).toBe(201);
     expect(res.body.message).toBe('Faction created successfully');
     expect(res.body.id).toBeDefined();
+    expect(res.body.faction.name).toBe('Test Faction');
 
-    createdId = res.body.id;
+    createdId = res.body.id.toString();
   });
 
   it('GET /factions/:id should return 400 for invalid id', async () => {
     const res = await request(app).get('/factions/invalid-id');
+
     expect(res.statusCode).toBe(400);
+    expect(res.body.message).toBe('Invalid faction ID');
+  });
+
+  it('GET /factions/:id should return 404 for valid but nonexistent id', async () => {
+    const fakeId = new ObjectId().toString();
+    const res = await request(app).get(`/factions/${fakeId}`);
+
+    expect(res.statusCode).toBe(404);
+    expect(res.body.message).toBe('Faction not found');
   });
 
   it('GET /factions/:id should return 200 for created faction', async () => {
     const res = await request(app).get(`/factions/${createdId}`);
+
     expect(res.statusCode).toBe(200);
     expect(res.body.name).toBe('Test Faction');
+  });
+
+  it('PUT /factions/:id should return 400 when required fields are missing', async () => {
+    const res = await request(app).put(`/factions/${createdId}`).send({
+      name: 'Bad Update'
+    });
+
+    expect(res.statusCode).toBe(400);
+    expect(res.body.message).toBe('name, leader, alignment, and headquarters are required');
   });
 
   it('PUT /factions/:id should update a faction', async () => {
@@ -76,6 +107,7 @@ describe('Factions API', () => {
 
   it('DELETE /factions/:id should delete a faction', async () => {
     const res = await request(app).delete(`/factions/${createdId}`);
+
     expect(res.statusCode).toBe(200);
     expect(res.body.message).toBe('Faction deleted successfully');
 
