@@ -85,4 +85,52 @@ describe('Characters API', () => {
 
     createdId = null;
   });
+
+  it('POST /characters should create a Jedi with details', async () => {
+    const res = await request(app).post('/characters').send({
+      name: 'Anakin Skywalker',
+      species: 'Human',
+      affiliation: 'Jedi Order',
+      collection: 'jedi',
+      forceUser: true,
+      lightsabers: ['blue'],
+      rank: 'Jedi Knight',
+      masters: ['Obi-Wan Kenobi'],
+      padawans: ['Ahsoka Tano']
+    });
+
+    expect(res.statusCode).toBe(201);
+    expect(res.body.character.details).toBeDefined();
+    expect(res.body.character.details.rank).toBe('Jedi Knight');
+    expect(res.body.character.details.lightsabers).toContain('blue');
+
+    //cleanup
+    await mongodb
+      .getDb()
+      .db(process.env.DB_NAME)
+      .collection('characters')
+      .deleteOne({ _id: new ObjectId(res.body.id) })
+  });
+
+  it('POST /characters should create a Droid with details', async () => {
+    const res = await request(app).post('/characters').send({
+      name: 'R2-D2',
+      species: 'Droid',
+      affiliation: 'Republic',
+      collection: 'droid',
+      model: 'R2-series',
+      manufacturer: 'Industrial Automaton',
+      primaryFunction: 'Astromech'
+    });
+
+    expect(res.statusCode).toBe(201);
+    expect(res.body.character.details.model).toBe('R2-series');
+
+    // cleanup
+    await mongodb
+      .getDb()
+      .db(process.env.DB_NAME)
+      .collection('characters')
+      .deleteOne({ _id: new ObjectId(res.body.id) });
+  })
 });
