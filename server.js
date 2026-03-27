@@ -2,9 +2,34 @@ const express = require('express');
 const mongodb = require('./db/connect');
 const swaggerUi = require('swagger-ui-express');
 const swaggerDocument = require('./swagger.json');
+const { auth, requiresAuth } = require('express-openid-connect');
+require('dotenv').config();
 
 const port = process.env.PORT || 3000;
 const app = express();
+
+const config = {
+  authRequired: false,
+  auth0Logout: true,
+  secret: process.env.SECRET,
+  baseURL: process.env.BASE_URL,
+  clientID: process.env.CLIENT_ID,
+  issuerBaseURL: process.env.ISSUER_BASE_URL,
+};
+
+app.use(auth(config));
+
+app.get('/', (req, res) => {
+  res.send(req.oidc.isAuthenticated() ? 'Logged in' : 'Logged out');
+});
+
+app.get('/characters', requiresAuth(), (req, res) => {
+  res.send(JSON.stringify(req.oidc.user));
+});
+
+app.get('/factions', requiresAuth(), (req, res) => {
+  res.send(JSON.stringify(req.oidc.user));
+});
 
 app.use(express.json());
 
@@ -36,5 +61,9 @@ if (process.env.NODE_ENV !== 'test') {
     }
   });
 }
+
+app.listen(port, () => {
+  console.log(`listening on port ${port}`);
+});
 
 module.exports = app;
