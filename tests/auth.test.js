@@ -1,13 +1,16 @@
 const request = require('supertest');
 const app = require('../server');
+const mongodb = require('../db/connect');
 
 describe('Authentication enforcement', () => {
-  beforeAll(() => {
+  beforeAll((done) => {
     app.set('bypassAuth', false);
+    mongodb.initDb((err) => done(err));
   });
 
-  afterAll(() => {
+  afterAll(async () => {
     app.set('bypassAuth', true);
+    await mongodb.closeDb();
   });
 
   it('GET /characters should remain public', async () => {
