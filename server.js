@@ -2,7 +2,7 @@ const express = require('express');
 const mongodb = require('./db/connect');
 const swaggerUi = require('swagger-ui-express');
 const swaggerDocument = require('./swagger.json');
-const { auth, requiresAuth } = require('express-openid-connect');
+const { auth } = require('express-openid-connect');
 require('dotenv').config();
 
 const port = process.env.PORT || 3000;
@@ -23,12 +23,12 @@ app.get('/', (req, res) => {
   res.send(req.oidc.isAuthenticated() ? 'Logged in' : 'Logged out');
 });
 
-app.get('/characters', requiresAuth(), (req, res) => {
-  res.send(JSON.stringify(req.oidc.user));
-});
+app.get('/profile', (req, res) => {
+  if (!req.oidc.isAuthenticated()) {
+    return res.status(401).json({ message: 'Authentication required' });
+  }
 
-app.get('/factions', requiresAuth(), (req, res) => {
-  res.send(JSON.stringify(req.oidc.user));
+  return res.status(200).json(req.oidc.user);
 });
 
 app.use(express.json());
@@ -46,24 +46,20 @@ app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument));
 const baseUrl = process.env.RENDER_EXTERNAL_URL || `http://localhost:${port}`;
 
 if (process.env.NODE_ENV !== 'test') {
-  app.listen(port, () => {
-    console.log('Server running');
-    console.log(`Base URL: ${baseUrl}`);
-    console.log(`Swagger Docs: ${baseUrl}/api-docs`);
-  });
-
   mongodb.initDb((err) => {
     if (err) {
       console.log('MongoDB not connected yet');
       console.error(err);
     } else {
       console.log('Connected to MongoDB');
+
+      app.listen(port, () => {
+        console.log('Server running');
+        console.log(`Base URL: ${baseUrl}`);
+        console.log(`Swagger Docs: ${baseUrl}/api-docs`);
+      });
     }
   });
 }
-
-app.listen(port, () => {
-  console.log(`listening on port ${port}`);
-});
 
 module.exports = app;
