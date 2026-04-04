@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const mongodb = require('../db/connect');
 const { ObjectId } = require('mongodb');
+const requireApiAuth = require('../middleware/requireApiAuth');
 
 router.get('/', async (req, res) => {
   try {
@@ -62,7 +63,7 @@ router.get('/:id', async (req, res) => {
   }
 });
 
-router.post('/', async (req, res) => {
+router.post('/', requireApiAuth, async (req, res) => {
   try {
     const { name, species, homeworld, affiliation, collection, weapon, forceUser, firstAppearance } = req.body;
 
@@ -100,7 +101,7 @@ router.post('/', async (req, res) => {
   }
 });
 
-router.put('/:id', async (req, res) => {
+router.put('/:id', requireApiAuth, async (req, res) => {
   try {
     const characterId = req.params.id;
 
@@ -147,7 +148,7 @@ router.put('/:id', async (req, res) => {
   }
 });
 
-router.delete('/:id', async (req, res) => {
+router.delete('/:id', requireApiAuth, async (req, res) => {
   try {
     const characterId = req.params.id;
 

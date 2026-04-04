@@ -1,6 +1,7 @@
 const router = require('express').Router();
 const mongodb = require('../db/connect');
 const { ObjectId } = require('mongodb');
+const requireApiAuth = require('../middleware/requireApiAuth');
 
 const getCollection = () => {
   return mongodb.getDb().db(process.env.DB_NAME).collection('factions');
@@ -51,7 +52,7 @@ router.get('/:id', async (req, res) => {
   }
 });
 
-router.post('/', async (req, res) => {
+router.post('/', requireApiAuth, async (req, res) => {
   try {
     const faction = buildFaction(req.body);
     const validationError = validateFaction(faction);
@@ -73,7 +74,7 @@ router.post('/', async (req, res) => {
   }
 });
 
-router.put('/:id', async (req, res) => {
+router.put('/:id', requireApiAuth, async (req, res) => {
   try {
     if (!ObjectId.isValid(req.params.id)) {
       return res.status(400).json({ message: 'Invalid faction ID' });
@@ -105,7 +106,7 @@ router.put('/:id', async (req, res) => {
   }
 });
 
-router.delete('/:id', async (req, res) => {
+router.delete('/:id', requireApiAuth, async (req, res) => {
   try {
     if (!ObjectId.isValid(req.params.id)) {
       return res.status(400).json({ message: 'Invalid faction ID' });

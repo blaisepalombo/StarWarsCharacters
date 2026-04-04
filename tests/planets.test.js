@@ -6,6 +6,7 @@ const mongodb = require('../db/connect');
 let createdId;
 
 beforeAll((done) => {
+  app.set('bypassAuth', true);
   mongodb.initDb((err) => done(err));
 });
 
